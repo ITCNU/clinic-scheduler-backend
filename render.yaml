@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: clinic-scheduler
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python migrate.py
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://username:password@hostname:port/database
+      - key: SECRET_KEY
+        value: your-secret-key-change-this-in-production
+      - key: DEBUG
+        value: False
+    healthCheckPath: /api/health
+
+  - type: pserv
+    name: clinic-scheduler-db
+    plan: free
+    databaseName: clinic_scheduler
+    user: clinic_user

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CNU Dental Clinic Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Dashboard</h1>
+            <span class="badge bg-primary fs-6">{{ current_user.role.title() }}</span>
+        </div>
+    </div>
+</div>
+
+{% if current_user.role == 'admin' %}
+    {% include 'admin_dashboard.html' %}
+{% elif current_user.role in ['faculty', 'front_desk'] %}
+    {% include 'staff_dashboard.html' %}
+{% elif current_user.role == 'student' %}
+    {% include 'student_dashboard.html' %}
+{% endif %}
+
+{% endblock %}

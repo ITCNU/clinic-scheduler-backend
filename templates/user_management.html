@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - CNU Dental Clinic Scheduler{% endblock %}
+
+{% block content %}
+
+<style>
+.sticky-header thead th { position: sticky; top: 0; background: #f8f9fa; z-index: 1; }
+.summary-badge { font-size: 0.85rem; font-weight: 600; }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0"><i class="fas fa-users-cog me-2"></i>User Management</h5>
+                <a href="/admin/users/add" class="btn btn-info"><i class="fas fa-user-plus me-2"></i>Add User</a>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input id="userSearch" type="text" class="form-control" placeholder="Search by name, username, or email..." onkeyup="renderUsers()">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="roleFilter" class="form-select" onchange="renderUsers()">
+                            <option value="">All Roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="faculty">Faculty</option>
+                            <option value="front_desk">Front Desk</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="statusFilter" class="form-select" onchange="renderUsers()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button class="btn btn-outline-secondary w-100" onclick="loadUsers()" title="Refresh">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <div id="usersAlert" class="alert d-none" role="alert"></div>
+                        <div id="usersSummary" class="d-flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mt-3">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm align-middle sticky-header">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:70px">ID</th>
+                        <th style="width:160px">Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th style="width:120px">Role</th>
+                        <th style="width:120px">Status</th>
+                        <th style="width:200px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr><td colspan="7" class="text-center text-muted">Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadUsers()"><i class="fas fa-sync me-1"></i>Refresh</button>
+    </div>
+</div>
+
+<script>
+let allUsers = [];
+
+document.addEventListener('DOMContentLoaded', function(){
+    loadUsers();
+});
+
+function getCookie(name){
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+function getAuthHeaders(){
+    const token = getCookie('access_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+function showUsersAlert(msg, cls){
+    let el = document.getElementById('usersAlert');
+    if (!el) {
+        // Create alert near the top of the page if missing
+        const container = document.querySelector('.card .card-body') || document.querySelector('.container, .container-fluid') || document.body;
+        el = document.createElement('div');
+        el.id = 'usersAlert';
+        el.setAttribute('role', 'alert');
+        container.prepend(el);
+    }
+    el.className = `alert ${cls}`;
+    el.textContent = msg;
+    el.classList.remove('d-none');
+    setTimeout(()=> { if (el) el.classList.add('d-none'); }, 3000);
+}
+
+async function loadUsers(){
+    try{
+        const res = await fetch('/auth/users', { headers: getAuthHeaders && getAuthHeaders() || {} });
+        if(!res.ok) throw new Error('Failed to load users');
+        allUsers = await res.json();
+        renderUsers();
+    }catch(e){
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">${e.message}</td></tr>`;
+    }
+}
+
+function renderUsers(){
+    const q = (document.getElementById('userSearch').value || '').toLowerCase();
+    const role = document.getElementById('roleFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    let users = allUsers.filter(u => {
+        if (q) {
+            const name = `${u.first_name||''} ${u.last_name||''}`.trim();
+            if (!(u.username?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || name.toLowerCase().includes(q))) return false;
+        }
+        if (role && u.role !== role) return false;
+        if (status) {
+            if (status === 'active' && !u.is_active) return false;
+            if (status === 'inactive' && u.is_active) return false;
+        }
+        return true;
+    });
+
+    const tbody = document.getElementById('usersTableBody');
+    if (users.length === 0){
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No users found</td></tr>';
+        return;
+    }
+    tbody.innerHTML = '';
+
+    const total = users.length;
+    const byRole = users.reduce((acc,u)=>{ acc[u.role]=(acc[u.role]||0)+1; return acc; },{});
+    const activeCount = users.filter(u=>u.is_active).length;
+    const inactiveCount = total - activeCount;
+    const sum = document.getElementById('usersSummary');
+    if (sum){
+        sum.innerHTML = '';
+        const pill = (cls, label) => `<span class="badge ${cls} summary-badge">${label}</span>`;
+        sum.innerHTML = [
+            pill('bg-secondary', `Total: ${total}`),
+            pill('bg-dark', `Admin: ${byRole.admin||0}`),
+            pill('bg-primary', `Faculty: ${byRole.faculty||0}`),
+            pill('bg-warning text-dark', `Front Desk: ${byRole.front_desk||0}`),
+            pill('bg-success', `Student: ${byRole.student||0}`),
+            pill('bg-success', `Active: ${activeCount}`),
+            pill('bg-secondary', `Inactive: ${inactiveCount}`)
+        ].join(' ');
+    }
+
+    users.forEach(u => {
+        const tr = document.createElement('tr');
+        const roleBadge = `<span class="badge ${u.role==='admin'?'bg-dark':u.role==='faculty'?'bg-primary':u.role==='front_desk'?'bg-warning text-dark':'bg-success'}">${u.role}</span>`;
+        const statusSwitch = `
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="u_${u.id}_active" ${u.is_active?'checked':''} onchange="toggleUser(this, ${u.id})">
+                <label class="form-check-label" for="u_${u.id}_active">${u.is_active?'Active':'Inactive'}</label>
+            </div>`;
+        tr.innerHTML = `
+            <td>${u.id}</td>
+            <td>
+                <div class="fw-semibold">${u.username}</div>
+                <div class="text-muted small">${u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</div>
+            </td>
+            <td>${(u.first_name||'') + ' ' + (u.last_name||'')}</td>
+            <td>${u.email}</td>
+            <td>${roleBadge}</td>
+            <td>${statusSwitch}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteUser(${u.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+async function toggleUser(elem, id){
+    try{
+        const makeActive = !!(elem && elem.checked);
+        const res = await fetch(`/auth/users/${id}/active?is_active=${makeActive ? 'true' : 'false'}`, { method:'PUT', headers:{ ...(getAuthHeaders && getAuthHeaders() || {}) } });
+        if(!res.ok) throw new Error('Update failed');
+        showUsersAlert('User updated','alert-success');
+        loadUsers();
+    }catch(e){ showUsersAlert('Failed to update user','alert-danger'); }
+}
+
+async function deleteUser(id){
+    if(!confirm('Delete this user? This action cannot be undone.')) return;
+    try{
+        const res = await fetch(`/auth/users/${id}`, { method:'DELETE', headers: getAuthHeaders && getAuthHeaders() || {} });
+        if(!res.ok) throw new Error('Delete failed');
+        showUsersAlert('User deleted','alert-success');
+        loadUsers();
+    }catch(e){ showUsersAlert('Failed to delete user','alert-danger'); }
+}
+</script>
+
+{% endblock %}
+
+

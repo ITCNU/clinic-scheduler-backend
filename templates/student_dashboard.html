@@ -1,0 +1,410 @@
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>My Schedule</h2>
+    </div>
+</div>
+
+{% if student_assignments %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>My Schedule</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <select class="form-select form-select-sm" id="weekFilter" onchange="filterByWeek()">
+                        <!-- Week options will be populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-3"><strong>Student ID:</strong> <span id="sdStudentId">-</span></div>
+                        <div class="col-md-3"><strong>Student Name:</strong> <span id="sdStudentName">{{ (current_user.first_name ~ ' ' ~ current_user.last_name) if current_user else '-' }}</span></div>
+                        <div class="col-md-3"><strong>Pair ID:</strong> <span id="sdPairId">-</span></div>
+                        <div class="col-md-3"><strong>Partner:</strong> <span id="sdPartner">-</span></div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="scheduleTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th rowspan="2" class="text-center align-middle">Chair</th>
+                                <th rowspan="2" class="text-center align-middle">Time Slot</th>
+                                <th colspan="5" class="text-center">Days of the Week</th>
+                            </tr>
+                            <tr id="dayHeaders">
+                                <th class="text-center">Monday</th>
+                                <th class="text-center">Tuesday</th>
+                                <th class="text-center">Wednesday</th>
+                                <th class="text-center">Thursday</th>
+                                <th class="text-center">Friday</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody">
+                            <!-- Schedule will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Schedule Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h5 class="text-primary">{{ stats.total_assignments or 0 }}</h5>
+                        <small class="text-muted">Total Assignments</small>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="text-success">{{ stats.completed_assignments or 0 }}</h5>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                    <div class="col-4">
+                        <h5 class="text-warning">{{ stats.pending_assignments or 0 }}</h5>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Important Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Please arrive 15 minutes before your scheduled time slot.
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Reminder:</strong> Contact your faculty advisor if you need to reschedule.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-calendar-times fa-5x text-muted mb-4"></i>
+                <h4 class="text-muted">No Schedule Assignments</h4>
+                <p class="text-muted">You don't have any schedule assignments yet. Please contact your faculty advisor.</p>
+                <a href="mailto:advisor@cnu.edu" class="btn btn-primary">
+                    <i class="fas fa-envelope me-2"></i>Contact Advisor
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+// Schedule data from server - using JSON approach
+let scheduleData = [];
+try {
+    const jsonData = '{{ schedule_data_json | safe }}';
+    scheduleData = JSON.parse(jsonData);
+    // Populate identity summary
+    const idSpan = document.getElementById('sdStudentId');
+    const pairSpan = document.getElementById('sdPairId');
+    const partnerSpan = document.getElementById('sdPartner');
+    // Prefer the first assignment that actually has a pairId/partner
+    const withPair = scheduleData.find(a => a && (a.pairId || a.partner));
+    const studentUsername = JSON.parse('{{ (current_user.username if current_user else "") | tojson }}');
+    if (idSpan) idSpan.textContent = studentUsername;
+    // Use server-provided fallbacks first (safe JSON-encoded strings)
+    const srvPair = JSON.parse('{{ (student_pair_id or "") | tojson }}');
+    const srvPartner = JSON.parse('{{ (student_partner_name or "") | tojson }}');
+    if (pairSpan) pairSpan.textContent = srvPair || (withPair && withPair.pairId) || 'N/A';
+    if (partnerSpan) partnerSpan.textContent = srvPartner || (withPair && withPair.partner) || 'N/A';
+} catch (error) {
+    console.error('Error parsing schedule data:', error);
+    scheduleData = [];
+}
+
+// Days mapping
+const dayMapping = {
+    'Monday': 0,
+    'Tuesday': 1,
+    'Wednesday': 2,
+    'Thursday': 3,
+    'Friday': 4
+};
+
+// Map chair to alias like GP2 Op01..Op17 and GP3 Op01..Op17
+function getChairAlias(chairValue) {
+    // Extract numeric part from values like "Chair 1" or "1"
+    const chairNumber = parseInt(String(chairValue).replace(/\D/g, ''), 10);
+    if (!Number.isFinite(chairNumber) || chairNumber < 1 || chairNumber > 34) {
+        return null;
+    }
+    if (chairNumber <= 17) {
+        const opNum = String(chairNumber).padStart(2, '0');
+        return `GP2 Op${opNum}`;
+    }
+    const opIndex = chairNumber - 17; // 1..17
+    const opNum = String(opIndex).padStart(2, '0');
+    return `GP3 Op${opNum}`;
+}
+
+// Update day headers with actual dates
+function updateDayHeaders(weekLabel) {
+    const dayHeaders = document.getElementById('dayHeaders');
+    if (!dayHeaders || !weekLabel) return;
+    
+    try {
+        // Parse week label like "10/27/2025-10/31/2025"
+        const [startDateStr, endDateStr] = weekLabel.split('-');
+        const startDate = new Date(startDateStr);
+        
+        // Calculate dates for Monday through Friday
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const dayDates = [];
+        
+        // Find Monday of the week
+        const dayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to get Monday
+        const mondayDate = new Date(startDate);
+        mondayDate.setDate(startDate.getDate() + mondayOffset);
+        
+        // Generate dates for Monday through Friday
+        for (let i = 0; i < 5; i++) {
+            const currentDate = new Date(mondayDate);
+            currentDate.setDate(mondayDate.getDate() + i);
+            dayDates.push(currentDate);
+        }
+        
+        // Update the header cells
+        const headerCells = dayHeaders.querySelectorAll('th');
+        dayNames.forEach((dayName, index) => {
+            if (headerCells[index]) {
+                const dateStr = dayDates[index].toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
+                headerCells[index].innerHTML = `${dayName}<br><small class="text-muted">(${dateStr})</small>`;
+            }
+        });
+    } catch (error) {
+        console.error('Error updating day headers:', error);
+    }
+}
+
+// Generate schedule grid
+function generateScheduleGrid(filteredData = null) {
+    const tbody = document.getElementById('scheduleBody');
+    tbody.innerHTML = '';
+    
+    const dataToUse = filteredData || scheduleData;
+    
+    // Group assignments by chair and time slot
+    const groupedData = {};
+    
+    dataToUse.forEach(assignment => {
+        const key = `${assignment.chair}-${assignment.timeSlot}`;
+        if (!groupedData[key]) {
+            groupedData[key] = {
+                chair: assignment.chair,
+                timeSlot: assignment.timeSlot,
+                days: [null, null, null, null, null] // Monday to Friday
+            };
+        }
+        
+        const dayIndex = dayMapping[assignment.day];
+        if (dayIndex !== undefined) {
+            groupedData[key].days[dayIndex] = assignment;
+        }
+    });
+    
+    // Sort by time slot first (AM before PM), then by chair
+    const sortedKeys = Object.keys(groupedData).sort((a, b) => {
+        const [chairA, timeA] = a.split('-');
+        const [chairB, timeB] = b.split('-');
+        
+        // Extract start time for proper chronological sorting
+        const getStartTime = (timeSlot) => {
+            const startTime = timeSlot.split('-')[0]; // Get "8:00" from "8:00-9:20"
+            const [hours, minutes] = startTime.split(':').map(Number);
+            return hours * 60 + minutes; // Convert to minutes for comparison
+        };
+        
+        const timeA_minutes = getStartTime(timeA);
+        const timeB_minutes = getStartTime(timeB);
+        
+        // First sort by time (AM before PM)
+        if (timeA_minutes !== timeB_minutes) {
+            return timeA_minutes - timeB_minutes;
+        }
+        
+        // If same time, then sort by chair number
+        const chairNumA = parseInt(chairA.replace(/\D/g, ''));
+        const chairNumB = parseInt(chairB.replace(/\D/g, ''));
+        
+        return chairNumA - chairNumB;
+    });
+    
+    // Generate table rows
+    sortedKeys.forEach(key => {
+        const rowData = groupedData[key];
+        
+        // Check if this student has any assignments for this chair/time combination
+        const hasStudentAssignment = rowData.days.some(assignment => assignment !== null);
+        
+        // Only show rows where the student has at least one assignment
+        if (!hasStudentAssignment) {
+            return; // Skip this row
+        }
+        
+        const row = document.createElement('tr');
+        
+        // Determine if this is AM or PM and add appropriate CSS class
+        const normalizedTimeSlot = rowData.timeSlot.replace(/[â€"–—]/g, '-');
+        const startTime = normalizedTimeSlot.split('-')[0];
+        const [hours] = startTime.split(':').map(Number);
+        
+        if (hours < 12) {
+            row.className = 'table-primary'; // Light blue for AM
+        } else {
+            row.className = 'table-warning'; // Yellow for PM
+        }
+        
+        // Chair cell
+        const chairCell = document.createElement('td');
+        chairCell.className = 'text-center fw-bold';
+        const chairAlias = getChairAlias(rowData.chair);
+        chairCell.textContent = chairAlias ? `${rowData.chair} (${chairAlias})` : rowData.chair;
+        row.appendChild(chairCell);
+        
+        // Time slot cell
+        const timeCell = document.createElement('td');
+        timeCell.className = 'text-center fw-bold';
+        timeCell.textContent = rowData.timeSlot;
+        row.appendChild(timeCell);
+        
+        // Day cells (Monday to Friday)
+        rowData.days.forEach((assignment, index) => {
+            const dayCell = document.createElement('td');
+            dayCell.className = 'text-center';
+            
+            if (assignment) {
+                let content = '';
+                
+                // CDT Code (Operation)
+                if (assignment.operation) {
+                    content += `<div class="mb-1"><span class="badge bg-info">${assignment.operation}</span></div>`;
+                } else {
+                    content += `<div class="mb-1"><span class="text-muted">Empty</span></div>`;
+                }
+                
+                // Patient ID only
+                if (assignment.patientId) {
+                    content += `<div class="mb-1"><strong>Patient ID: ${assignment.patientId}</strong></div>`;
+                } else {
+                    content += '<div class="mb-1"><span class="text-muted">No patient</span></div>';
+                }
+                
+                // Partner
+                if (assignment.partner) {
+                    content += `<div class="mb-1"><small class="text-muted">Partner: ${assignment.partner}</small></div>`;
+                }
+                
+                // Status
+                let statusClass = 'bg-secondary';
+                let statusText = 'Empty';
+                if (assignment.status === 'assigned') {
+                    statusClass = 'bg-success';
+                    statusText = 'Assigned';
+                } else if (assignment.status === 'completed') {
+                    statusClass = 'bg-primary';
+                    statusText = 'Completed';
+                }
+                content += `<div><span class="badge ${statusClass}">${statusText}</span></div>`;
+                
+                dayCell.innerHTML = content;
+            } else {
+                dayCell.innerHTML = '<span class="text-muted">-</span>';
+            }
+            
+            row.appendChild(dayCell);
+        });
+        
+        tbody.appendChild(row);
+    });
+}
+
+
+
+// Populate week filter dropdown
+function populateWeekFilter() {
+    const uniqueWeeks = [...new Set(scheduleData.map(assignment => assignment.week))];
+    
+    // Sort weeks chronologically (assuming week format like "10/27/2025-10/31/2025")
+    uniqueWeeks.sort((a, b) => {
+        const dateA = new Date(a.split('-')[0]);
+        const dateB = new Date(b.split('-')[0]);
+        return dateA - dateB;
+    });
+    
+    // Clear existing options
+    weekFilter.innerHTML = '';
+    
+    // Add week options
+    uniqueWeeks.forEach(week => {
+        const option = document.createElement('option');
+        option.value = week;
+        option.textContent = week;
+        weekFilter.appendChild(option);
+    });
+    
+    // If there are weeks available, select the first one and update headers
+    if (uniqueWeeks.length > 0) {
+        weekFilter.value = uniqueWeeks[0];
+        updateDayHeaders(uniqueWeeks[0]);
+        // Actually filter the schedule to show the first week's data
+        filterByWeek();
+    }
+}
+
+// Initialize the schedule grid when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (scheduleData.length === 0) {
+        const tbody = document.getElementById('scheduleBody');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No schedule assignments found</td></tr>';
+        }
+    } else {
+        populateWeekFilter();
+        // generateScheduleGrid is called inside filterByWeek from populateWeekFilter
+    }
+});
+
+// Filter schedule by week
+function filterByWeek() {
+    const weekFilter = document.getElementById('weekFilter');
+    const selectedWeek = weekFilter.value;
+    
+    let filteredData = scheduleData;
+    if (selectedWeek) {
+        filteredData = scheduleData.filter(assignment => assignment.week === selectedWeek);
+        // Update day headers with dates for the selected week
+        updateDayHeaders(selectedWeek);
+    }
+    
+    generateScheduleGrid(filteredData);
+}
+</script>

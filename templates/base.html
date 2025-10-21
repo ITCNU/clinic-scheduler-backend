@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CNU Dental Clinic Scheduler{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+</head>
+<body data-user-role="{{ current_user.role if current_user else 'guest' }}">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-tooth me-2"></i>CNU Dental Clinic Scheduler
+            </a>
+            
+            {% if current_user %}
+            <div class="navbar-nav me-auto">
+                <a class="nav-link" href="/dashboard">
+                    Dashboard
+                </a>
+                {% if current_user.role in ['admin', 'faculty'] %}
+                <a class="nav-link" href="/schedule">
+                    <i class="fas fa-calendar-alt me-1"></i>Schedule
+                </a>
+                {% endif %}
+                {% if current_user.role in ['admin', 'faculty', 'front_desk'] %}
+                {% if current_user.role != 'front_desk' %}
+                <a class="nav-link" href="/operation-tracking">
+                    <i class="fas fa-chart-bar me-1"></i>Treatment Tracking
+                </a>
+                {% endif %}
+                <a class="nav-link" href="/patient-assignment">
+                    <i class="fas fa-user-plus me-1"></i>Patient Assignment
+                </a>
+                {% endif %}
+                {% if current_user.role == 'admin' %}
+                <a class="nav-link" href="/files">
+                    <i class="fas fa-cog me-1"></i>Management
+                </a>
+                {% endif %}
+            </div>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-1"></i>Account
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><span class="dropdown-item-text">Role: {{ current_user.role.title() }}</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-light mt-5 py-4">
+        <div class="container text-center">
+            <p class="text-muted mb-0">&copy; 2025 CNU Dental Clinic Scheduler. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (function(){
+      function getCookie(name){
+        const m = document.cookie.match(new RegExp('(^| )'+name+'=([^;]+)'));
+        return m ? decodeURIComponent(m[2]) : null;
+      }
+      try{
+        // Always create default styles
+        let style = document.getElementById('custom-ui-styles');
+        if (!style) {
+          style = document.createElement('style');
+          style.id = 'custom-ui-styles';
+          document.head.appendChild(style);
+        }
+        const defaults = {
+          amColor: '#cce5ff',
+          pmColor: '#fff2cc',
+          headerBg: '#212529',
+          headerText: '#ffffff'
+        };
+
+        // Read cookies; prefer individual keys; fallback to legacy combined JSON
+        const amColor = getCookie('amColor');
+        const pmColor = getCookie('pmColor');
+        const headerBgColor = getCookie('headerBgColor');
+        const headerTextColor = getCookie('headerTextColor');
+        let s = null;
+        if (amColor || pmColor || headerBgColor || headerTextColor) {
+          s = {
+            amColor: amColor || defaults.amColor,
+            pmColor: pmColor || defaults.pmColor,
+            headerBg: headerBgColor || defaults.headerBg,
+            headerText: headerTextColor || defaults.headerText
+          };
+        } else {
+          const raw = getCookie('ui_settings');
+          if (raw) {
+            const legacy = JSON.parse(raw);
+            s = {
+              amColor: legacy.amColor || defaults.amColor,
+              pmColor: legacy.pmColor || defaults.pmColor,
+              headerBg: legacy.headerBg || defaults.headerBg,
+              headerText: legacy.headerText || defaults.headerText
+            };
+          }
+        }
+
+        // If no settings, use defaults
+        if (!s) s = defaults;
+
+        style.textContent = `
+          .am-row, .am-row > td { background-color: ${s.amColor} !important; }
+          .pm-row, .pm-row > td { background-color: ${s.pmColor} !important; }
+          .table-dark, .table-dark th { background-color: ${s.headerBg} !important; color: ${s.headerText} !important; }
+          .table-dark thead th { color: ${s.headerText} !important; }
+        `;
+      }catch(e){}
+    })();
+    </script>
+    <script>
+    // Global relative time updater for elements with class="time-ago" and data-ts (UTC ISO)
+    (function(){
+      function fmtAgo(ms){
+        const s=Math.floor(ms/1000), m=Math.floor(s/60), h=Math.floor(m/60), d=Math.floor(h/24);
+        if (d>0) return `${d} day${d>1?'s':''} ago`;
+        if (h>0) return `${h} hour${h>1?'s':''} ago`;
+        if (m>0) return `${m} minute${m>1?'s':''} ago`;
+        return 'just now';
+      }
+      function renderTimes(){
+        document.querySelectorAll('.time-ago').forEach(el=>{
+          const ts = el.getAttribute('data-ts');
+          if(!ts) return;
+          const diff = Date.now() - new Date(ts).getTime();
+          el.textContent = fmtAgo(diff);
+        });
+      }
+      renderTimes();
+      setInterval(renderTimes, 60000);
+    })();
+    </script>
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+</body>
+</html>

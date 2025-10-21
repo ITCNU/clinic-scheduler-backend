@@ -1,0 +1,329 @@
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Admin Dashboard</h2>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">File Management</h5>
+                <p class="card-text">Upload and manage student data and schedules</p>
+                <a href="/files" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Manage Files
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Student Management</h5>
+                <p class="card-text">View and manage student information</p>
+                <a href="/admin/students" class="btn btn-info">
+                    <i class="fas fa-users me-2"></i>Manage Students
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-alt fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Schedule Management</h5>
+                <p class="card-text">Create and manage clinic schedules</p>
+                <a href="/schedule" class="btn btn-warning">
+                    <i class="fas fa-calendar-alt me-2"></i>View Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Treatment Tracking</h5>
+                <p class="card-text">Review treatment counts by pair</p>
+                <a href="/operation-tracking" class="btn btn-primary">
+                    <i class="fas fa-chart-bar me-2"></i>View Tracking
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-user-plus fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Patient Assignment</h5>
+                <p class="card-text">Assign patients to available slots</p>
+                <a href="/patient-assignment" class="btn btn-warning text-dark">
+                    <i class="fas fa-user-plus me-2"></i>Assign Patients
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="fas fa-tooth fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">Manage Treatments</h5>
+                <p class="card-text">Add, rename, or delete treatments</p>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#operationsModal" onclick="loadOperationsAdmin()">
+                    <i class="fas fa-edit me-2"></i>Open Manager
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="fas fa-users-cog fa-3x text-info mb-3"></i>
+                <h5 class="card-title">User Management</h5>
+                <p class="card-text">Add administrators, faculty, or front desk users</p>
+                <a href="/admin/users" class="btn btn-info">
+                    <i class="fas fa-users-cog me-2"></i>Manage Users
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Reports</h5>
+                <p class="card-text">Generate reports and analytics</p>
+                <a href="/reports" class="btn btn-success">
+                    <i class="fas fa-chart-line me-2"></i>Generate Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-secondary">
+            <div class="card-body text-center">
+                <i class="fas fa-cog fa-3x text-secondary mb-3"></i>
+                <h5 class="card-title">System Settings</h5>
+                <p class="card-text">Configure system parameters</p>
+                <a href="/admin/settings" class="btn btn-secondary">
+                    <i class="fas fa-cog me-2"></i>Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="text-primary">{{ stats.total_students or 0 }}</h4>
+                        <small class="text-muted">Students</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-info">{{ stats.total_pairs or 0 }}</h4>
+                        <small class="text-muted">Pairs</small>
+                        <br>
+                        <a href="/files" class="btn btn-sm btn-outline-info mt-1">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </a>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-success">{{ stats.total_operations or 0 }}</h4>
+                        <small class="text-muted">Operations</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user-plus me-2"></i>New user registered</span>
+                        <small class="text-muted">2 hours ago</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-plus me-2"></i>Schedule updated</span>
+                        <small class="text-muted">1 day ago</small>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-file-upload me-2"></i>Student data imported</span>
+                        <small class="text-muted">3 days ago</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Treatment Manager Modal -->
+<div class="modal fade" id="operationsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Treatment Manager</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex mb-3">
+          <input id="opName" class="form-control me-2" placeholder="Treatment Name" style="flex: 1;">
+          <input id="opCdtCode" class="form-control me-2" placeholder="CDT Code (e.g., D2740)" style="width: 150px;">
+          <input id="opDesc" class="form-control me-2" placeholder="Description (optional)" style="flex: 1;">
+          <button class="btn btn-primary" onclick="createOperationAdmin()"><i class="fas fa-plus me-1"></i>Add</button>
+        </div>
+        <div id="opsAlert" class="alert d-none" role="alert"></div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width:60px">ID</th>
+                <th>Name</th>
+                <th style="width:120px">CDT Code</th>
+                <th>Description</th>
+                <th style="width:160px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="opsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+<script>
+// Accessibility/focus fix for modal: ensure focus leaves hidden modal
+document.addEventListener('DOMContentLoaded', function(){
+  const modalEl = document.getElementById('operationsModal');
+  if (!modalEl) return;
+  // When modal is shown, ensure clicking the Close button blurs focus first
+  modalEl.addEventListener('shown.bs.modal', function(){
+    const closeBtn = modalEl.querySelector('.btn-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(){
+        try { this.blur(); } catch(e) {}
+        const opener = document.querySelector('[data-bs-target="#operationsModal"]');
+        if (opener) { try { opener.focus(); } catch(e) {} }
+      });
+    }
+  });
+  modalEl.addEventListener('hide.bs.modal', function(){
+    // If focus is still inside the modal, blur it and return focus to opener
+    const active = document.activeElement;
+    if (active && modalEl.contains(active)) {
+      try { active.blur(); } catch(e) {}
+    }
+    const opener = document.querySelector('[data-bs-target="#operationsModal"]');
+    if (opener) {
+      try { opener.focus(); } catch(e) {}
+    }
+  });
+});
+const CDT_GROUPS = ['D01XX','D1XXX','D2XXX','D3XXX','D4XXX','D5XXX','D6XXX','D7XXX'];
+
+async function loadOperationsAdmin(){
+  try{
+    const res = await fetch('/api/operations/');
+    const ops = await res.json();
+    const tbody = document.getElementById('opsTableBody');
+    tbody.innerHTML = '';
+    ops.forEach(op => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${op.id}</td>
+        <td><input class="form-control form-control-sm" value="${op.name || ''}" data-id="${op.id}" data-field="name"></td>
+        <td><input class="form-control form-control-sm" value="${op.cdt_code || ''}" data-id="${op.id}" data-field="cdt_code" placeholder="e.g., D2740"></td>
+        <td><input class="form-control form-control-sm" value="${op.description || ''}" data-id="${op.id}" data-field="description"></td>
+        <td>
+          <button class="btn btn-sm btn-primary me-2" onclick="updateOperationAdmin(${op.id})"><i class="fas fa-save me-1"></i>Save</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteOperationAdmin(${op.id})"><i class="fas fa-trash me-1"></i>Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(e){ showOpsAlert('Failed to load operations','alert-danger'); }
+}
+
+function showOpsAlert(msg, cls){
+  let el = document.getElementById('opsAlert');
+  if (!el) {
+    // Create the alert inside the modal body if missing
+    const modal = document.getElementById('operationsModal');
+    const body = modal ? modal.querySelector('.modal-body') : document.body;
+    el = document.createElement('div');
+    el.id = 'opsAlert';
+    el.setAttribute('role', 'alert');
+    body.prepend(el);
+  }
+  el.className = `alert ${cls}`;
+  el.textContent = msg;
+  el.classList.remove('d-none');
+  setTimeout(()=> { if (el) el.classList.add('d-none'); }, 3000);
+}
+
+async function createOperationAdmin(){
+  const name = document.getElementById('opName').value.trim();
+  const cdtCode = document.getElementById('opCdtCode').value.trim();
+  const description = document.getElementById('opDesc').value.trim();
+  if(!name && !cdtCode){ showOpsAlert('Please enter either a treatment name or CDT code','alert-warning'); return; }
+  try{
+    const res = await fetch('/api/operations/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name: name || null, cdt_code: cdtCode || null, description: description || null})});
+    if(!res.ok) throw new Error();
+    document.getElementById('opName').value='';
+    document.getElementById('opCdtCode').value='';
+    document.getElementById('opDesc').value='';
+    showOpsAlert('Operation created','alert-success');
+    loadOperationsAdmin();
+  }catch(e){ showOpsAlert('Create failed','alert-danger'); }
+}
+
+async function updateOperationAdmin(id){
+  const inputs = document.querySelectorAll(`[data-id="${id}"]`);
+  const payload = {};
+  inputs.forEach(inp => {
+    const field = inp.getAttribute('data-field');
+    let val = inp.value.trim();
+    payload[field] = val;
+  });
+  try{
+    const res = await fetch(`/api/operations/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error();
+    showOpsAlert('Operation updated','alert-success');
+    loadOperationsAdmin();
+  }catch(e){ showOpsAlert('Update failed','alert-danger'); }
+}
+
+async function deleteOperationAdmin(id){
+  if(!confirm('Delete this operation?')) return;
+  try{
+    const res = await fetch(`/api/operations/${id}`,{method:'DELETE'});
+    if(!res.ok) throw new Error();
+    showOpsAlert('Operation deleted','alert-success');
+    loadOperationsAdmin();
+  }catch(e){ showOpsAlert('Delete failed','alert-danger'); }
+}
+</script>

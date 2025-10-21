@@ -1,0 +1,1427 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Display - CNU Dental Clinic Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-calendar-alt me-2"></i>Schedule Display</h1>
+            <div>
+                {% if current_user.role in ['admin', 'faculty'] %}
+                <button class="btn btn-outline-secondary me-2" onclick="toggleView()" id="viewToggleBtn">
+                    <i class="fas fa-list me-2"></i>List View
+                </button>
+                {% endif %}
+                <button class="btn btn-primary" onclick="refreshSchedule()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+                <button class="btn btn-success" onclick="exportSchedule()">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="weekFilter" class="form-label">Week</label>
+                        <select class="form-select" id="weekFilter" onchange="filterSchedule()">
+                            <option value="">All Weeks</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="dayFilter" class="form-label">Day</label>
+                        <select class="form-select" id="dayFilter" onchange="filterSchedule()">
+                            <option value="">All Days</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="operationFilter" class="form-label">Operation</label>
+                        <select class="form-select" id="operationFilter" onchange="filterSchedule()">
+                            <option value="">All Operations</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="chairFilter" class="form-label">Chair</label>
+                        <select class="form-select" id="chairFilter" onchange="filterSchedule()">
+                            <option value="">All Chairs</option>
+                        </select>
+                </div>
+            </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label for="timeFilter" class="form-label">Time Period</label>
+                        <select class="form-select" id="timeFilter" onchange="filterSchedule()">
+                            <option value="">All Times</option>
+                            <option value="AM">AM (Morning)</option>
+                            <option value="PM">PM (Afternoon)</option>
+                        </select>
+                    </div>
+                    {% if current_user.role in ['admin', 'faculty'] %}
+                    <div class="col-md-3">
+                        <label for="pairFilter" class="form-label">Pair ID</label>
+                        <select class="form-select" id="pairFilter" onchange="filterSchedule()">
+                            <option value="">All Pairs</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-3">
+                        <label for="patientNameFilter" class="form-label">Patient Name</label>
+                        <input type="text" class="form-control" id="patientNameFilter" placeholder="Search by patient name..." onkeyup="filterSchedule()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="patientIdFilter" class="form-label">Patient ID</label>
+                        <input type="text" class="form-control" id="patientIdFilter" placeholder="Search by patient ID..." onkeyup="filterSchedule()">
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label for="studentIdFilter" class="form-label">Student ID</label>
+                        <select class="form-select" id="studentIdFilter" onchange="filterSchedule()">
+                            <option value="">All Students</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Display -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Schedule</h5>
+            </div>
+            <div class="card-body" data-show-students="{{ 'true' if current_user and current_user.role in ['admin','faculty'] else 'false' }}">
+                <div id="scheduleContainer">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading schedule...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h3 class="text-primary" id="totalAssignments">0</h3>
+                <p class="text-muted">Total Assignments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h3 class="text-success" id="assignedSlots">0</h3>
+                <p class="text-muted">Assigned Slots</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h3 class="text-warning" id="emptySlots">0</h3>
+                <p class="text-muted">Empty Slots</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Details Modal -->
+<div class="modal fade" id="assignmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-calendar-check me-2"></i>Assignment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="assignmentDetails"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editAssignment()">Edit Assignment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Edit Modal -->
+<div class="modal fade" id="editAssignmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Assignment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAssignmentForm">
+                    <!-- Read-only fields (display only) -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <h6 class="text-muted">Assignment Details (Read-only)</h6>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Week</label>
+                            <input type="text" class="form-control" id="editWeekDisplay" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Day</label>
+                            <input type="text" class="form-control" id="editDayDisplay" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Time Slot</label>
+                            <input type="text" class="form-control" id="editTimeSlotDisplay" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Chair</label>
+                            <input type="text" class="form-control" id="editChairDisplay" readonly>
+                        </div>
+                    </div>
+                    
+                    <!-- Editable fields -->
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-primary">Editable Fields</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPair" class="form-label">Pair ID</label>
+                            <select class="form-select" id="editPair" onchange="updateStudentInfo()">
+                                <option value="">No Pair</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editOperation" class="form-label">Operation</label>
+                            <select class="form-select" id="editOperation">
+                                <option value="">No Operation</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPatientId" class="form-label">Patient ID</label>
+                            <input type="text" class="form-control" id="editPatientId" placeholder="Enter Patient ID">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editPatientName" class="form-label">Patient Name</label>
+                            <input type="text" class="form-control" id="editPatientName" placeholder="Enter Patient Name">
+                        </div>
+                    </div>
+                    
+                    <!-- Auto-updated fields -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-12">
+                            <h6 class="text-success">Auto-updated Fields</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Student 1</label>
+                            <input type="text" class="form-control" id="editStudent1Display" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Student 2</label>
+                            <input type="text" class="form-control" id="editStudent2Display" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Grade</label>
+                            <input type="text" class="form-control" id="editGradeDisplay" readonly>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveAssignment()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+const showStudents = document.querySelector('[data-show-students]').getAttribute('data-show-students') === 'true';
+let scheduleData = [];
+let filteredData = [];
+let currentAssignment = null;
+
+// Map chair to alias like GP2 Op01..Op17 and GP3 Op01..Op17
+function getChairAlias(chairValue) {
+    const chairNumber = parseInt(String(chairValue).replace(/\D/g, ''), 10);
+    if (!Number.isFinite(chairNumber) || chairNumber < 1 || chairNumber > 34) {
+        return null;
+    }
+    if (chairNumber <= 17) {
+        const opNum = String(chairNumber).padStart(2, '0');
+        return `GP2 Op${opNum}`;
+    }
+    const opIndex = chairNumber - 17; // 1..17
+    const opNum = String(opIndex).padStart(2, '0');
+    return `GP3 Op${opNum}`;
+}
+
+function formatChair(chairValue) {
+    const alias = getChairAlias(chairValue);
+    return alias ? `${chairValue} (${alias})` : chairValue;
+}
+
+// Given a week label like "10/27/2025-10/31/2025", return ["Monday (10/27/2025)", ..., "Friday (...)"]
+function getDayLabelsForWeek(weekLabel) {
+    try {
+        if (!weekLabel) return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const [startDateStr] = weekLabel.split('-');
+        const startDate = new Date(startDateStr);
+        const dayOfWeek = startDate.getDay(); // 0=Sun..6=Sat
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const mondayDate = new Date(startDate);
+        mondayDate.setDate(startDate.getDate() + mondayOffset);
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const labels = [];
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(mondayDate);
+            d.setDate(mondayDate.getDate() + i);
+            const dateStr = d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+            labels.push(`${dayNames[i]} (${dateStr})`);
+        }
+        return labels;
+    } catch (e) {
+        return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    }
+}
+
+// Helper function to get cookie value
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+    const token = getCookie('access_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadScheduleData();
+});
+
+async function loadScheduleData() {
+    try {
+        const response = await fetch('/api/assignments/', {
+            headers: getAuthHeaders()
+        });
+        if (response.ok) {
+            scheduleData = await response.json();
+            filteredData = [...scheduleData];
+            populateFilters();
+            displaySchedule();
+            updateStatistics();
+        } else {
+            showError('Failed to load schedule data');
+        }
+    } catch (error) {
+        showError('Error loading schedule data: ' + error.message);
+    }
+}
+
+function populateFilters() {
+    // Populate week filter
+    const weekFilter = document.getElementById('weekFilter');
+    const weeks = [...new Set(scheduleData.map(a => a.week?.week_label).filter(Boolean))].sort();
+    weeks.forEach(week => {
+        const option = document.createElement('option');
+        option.value = week;
+        option.textContent = week;
+        weekFilter.appendChild(option);
+    });
+    
+    // Populate pair filter if present (hidden for front_desk)
+    const pairFilter = document.getElementById('pairFilter');
+    if (pairFilter) {
+    const pairs = [...new Set(scheduleData.map(a => a.pair?.pair_id).filter(Boolean))].sort((a, b) => {
+        const aMatch = a.match(/G(\d+)P(\d+)/);
+        const bMatch = b.match(/G(\d+)P(\d+)/);
+        if (!aMatch || !bMatch) return a.localeCompare(b);
+        const aGroup = parseInt(aMatch[1]);
+        const aPair = parseInt(aMatch[2]);
+        const bGroup = parseInt(bMatch[1]);
+        const bPair = parseInt(bMatch[2]);
+            if (aGroup !== bGroup) return aGroup - bGroup;
+        return aPair - bPair;
+    });
+    pairs.forEach(pair => {
+        const option = document.createElement('option');
+        option.value = pair;
+        option.textContent = pair;
+        pairFilter.appendChild(option);
+    });
+    }
+    
+    // Populate operation filter
+    const operationFilter = document.getElementById('operationFilter');
+    const operations = [...new Set(scheduleData.map(a => a.operation?.name).filter(Boolean))].sort();
+    operations.forEach(operation => {
+        const option = document.createElement('option');
+        option.value = operation;
+        option.textContent = operation;
+        operationFilter.appendChild(option);
+    });
+
+    // Populate chair filter
+    const chairFilter = document.getElementById('chairFilter');
+    if (chairFilter) {
+        const chairs = [...new Set(scheduleData.map(a => a.chair).filter(Boolean))]
+            .sort((a, b) => (parseInt(a.match(/\d+/)?.[0]||0) - parseInt(b.match(/\d+/)?.[0]||0)));
+        chairs.forEach(chair => {
+            const option = document.createElement('option');
+            option.value = chair;
+            option.textContent = formatChair(chair);
+            chairFilter.appendChild(option);
+        });
+    }
+    
+    // Populate student ID filter
+    const studentIdFilter = document.getElementById('studentIdFilter');
+    if (studentIdFilter) {
+        const studentIds = new Set();
+        scheduleData.forEach(assignment => {
+            if (assignment.pair?.student1?.student_id) {
+                studentIds.add(assignment.pair.student1.student_id);
+            }
+            if (assignment.pair?.student2?.student_id) {
+                studentIds.add(assignment.pair.student2.student_id);
+            }
+        });
+        const sortedStudentIds = Array.from(studentIds).sort();
+        sortedStudentIds.forEach(studentId => {
+            const option = document.createElement('option');
+            option.value = studentId;
+            option.textContent = studentId;
+            studentIdFilter.appendChild(option);
+        });
+    }
+}
+
+function filterSchedule() {
+    const weekFilter = document.getElementById('weekFilter').value;
+    const dayFilter = document.getElementById('dayFilter').value;
+    const pairFilterEl = document.getElementById('pairFilter');
+    const pairFilter = pairFilterEl ? pairFilterEl.value : '';
+    const operationFilter = document.getElementById('operationFilter').value;
+    const chairFilter = document.getElementById('chairFilter') ? document.getElementById('chairFilter').value : '';
+    const timeFilter = document.getElementById('timeFilter') ? document.getElementById('timeFilter').value : '';
+    const patientNameFilter = document.getElementById('patientNameFilter') ? document.getElementById('patientNameFilter').value.toLowerCase() : '';
+    const patientIdFilter = document.getElementById('patientIdFilter') ? document.getElementById('patientIdFilter').value.toLowerCase() : '';
+    const studentIdFilter = document.getElementById('studentIdFilter') ? document.getElementById('studentIdFilter').value : '';
+    
+    filteredData = scheduleData.filter(assignment => {
+        if (weekFilter && assignment.week?.week_label !== weekFilter) return false;
+        if (dayFilter && assignment.day !== dayFilter) return false;
+        if (pairFilter && assignment.pair?.pair_id !== pairFilter) return false;
+        if (operationFilter && assignment.operation?.name !== operationFilter) return false;
+        if (chairFilter && assignment.chair !== chairFilter) return false;
+        
+        // AM/PM filter
+        if (timeFilter) {
+            const startTime = assignment.time_slot.split('-')[0];
+            const hours = parseInt(startTime.split(':')[0]);
+            const isAM = hours < 12;
+            const isPM = hours >= 12;
+            
+            if (timeFilter === 'AM' && !isAM) return false;
+            if (timeFilter === 'PM' && !isPM) return false;
+        }
+        
+        // Patient name filter (case-insensitive partial match)
+        if (patientNameFilter && assignment.patient_name) {
+            if (!assignment.patient_name.toLowerCase().includes(patientNameFilter)) return false;
+        } else if (patientNameFilter && !assignment.patient_name) {
+            return false; // If searching for patient name but no patient assigned
+        }
+        
+        // Patient ID filter (case-insensitive partial match)
+        if (patientIdFilter && assignment.patient_id) {
+            if (!assignment.patient_id.toLowerCase().includes(patientIdFilter)) return false;
+        } else if (patientIdFilter && !assignment.patient_id) {
+            return false; // If searching for patient ID but no patient assigned
+        }
+        
+        // Student ID filter - show assignments for pairs containing the selected student
+        if (studentIdFilter && assignment.pair) {
+            const student1Id = assignment.pair.student1?.student_id;
+            const student2Id = assignment.pair.student2?.student_id;
+            if (student1Id !== studentIdFilter && student2Id !== studentIdFilter) {
+                return false;
+            }
+        } else if (studentIdFilter && !assignment.pair) {
+            return false; // If searching for student ID but no pair assigned
+        }
+        
+        return true;
+    });
+    
+    // Sort filtered data by date, then AM/PM, then chair
+    filteredData.sort((a, b) => {
+        // First sort by week (date)
+        const weekA = a.week?.week_label || '';
+        const weekB = b.week?.week_label || '';
+        if (weekA !== weekB) {
+            return weekA.localeCompare(weekB);
+        }
+        
+        // Then sort by day of week
+        const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const dayA = dayOrder.indexOf(a.day);
+        const dayB = dayOrder.indexOf(b.day);
+        if (dayA !== dayB) {
+            return dayA - dayB;
+        }
+        
+        // Then sort by AM/PM (AM first)
+        const timeA = a.time_slot.split('-')[0];
+        const timeB = b.time_slot.split('-')[0];
+        const hoursA = parseInt(timeA.split(':')[0]);
+        const hoursB = parseInt(timeB.split(':')[0]);
+        const isAMA = hoursA < 12;
+        const isAMB = hoursB < 12;
+        
+        if (isAMA !== isAMB) {
+            return isAMA ? -1 : 1; // AM comes before PM
+        }
+        
+        // Finally sort by chair number
+        const chairA = parseInt(a.chair.replace('Chair ', ''));
+        const chairB = parseInt(b.chair.replace('Chair ', ''));
+        return chairA - chairB;
+    });
+    
+    displaySchedule();
+    updateStatistics();
+}
+
+// This function is now handled by the new displaySchedule() function above
+
+function updateStatistics() {
+    const totalAssignments = filteredData.length;
+    const assignedSlots = filteredData.filter(a => a.status === 'assigned').length;
+    const emptySlots = filteredData.filter(a => a.status === 'empty').length;
+    
+    document.getElementById('totalAssignments').textContent = totalAssignments;
+    document.getElementById('assignedSlots').textContent = assignedSlots;
+    document.getElementById('emptySlots').textContent = emptySlots;
+}
+
+function viewAssignment(assignmentId) {
+    const assignment = scheduleData.find(a => a.id === assignmentId);
+    if (!assignment) return;
+    
+    currentAssignment = assignment;
+    
+    const detailsDiv = document.getElementById('assignmentDetails');
+    detailsDiv.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Assignment Information</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Week:</strong></td><td>${assignment.week?.week_label || 'N/A'}</td></tr>
+                    <tr><td><strong>Day:</strong></td><td>${assignment.day}</td></tr>
+                    <tr><td><strong>Time Slot:</strong></td><td>${assignment.time_slot}</td></tr>
+                    <tr><td><strong>Chair:</strong></td><td>${formatChair(assignment.chair)}</td></tr>
+                    <tr><td><strong>Status:</strong></td><td><span class="badge bg-${assignment.status === 'assigned' ? 'success' : 'secondary'}">${assignment.status}</span></td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Details</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>Operation:</strong></td><td>${assignment.operation?.name || 'N/A'}</td></tr>
+                    <tr><td><strong>Patient ID:</strong></td><td>${assignment.patient_id || 'N/A'}</td></tr>
+                    <tr><td><strong>Patient Name:</strong></td><td>${assignment.patient_name || 'N/A'}</td></tr>
+                    <tr><td><strong>Assigned Pair:</strong></td><td>${assignment.pair?.pair_id || 'N/A'}</td></tr>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('assignmentModal'));
+    modal.show();
+}
+
+async function editAssignment() {
+    if (!currentAssignment) return;
+    
+    // Close the details modal
+    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('assignmentModal'));
+    if (detailsModal) detailsModal.hide();
+    
+    // Populate edit form with current assignment data
+    await populateEditForm(currentAssignment);
+    
+    // Show edit modal
+    const editModal = new bootstrap.Modal(document.getElementById('editAssignmentModal'));
+    editModal.show();
+}
+
+async function populateEditForm(assignment) {
+    // Populate dropdowns first
+    populateEditPairDropdown();
+    await populateEditOperationDropdown();
+    
+    // Set read-only display values
+    document.getElementById('editWeekDisplay').value = assignment.week?.week_label || '';
+    document.getElementById('editDayDisplay').value = assignment.day || '';
+    document.getElementById('editTimeSlotDisplay').value = assignment.time_slot || '';
+    document.getElementById('editChairDisplay').value = assignment.chair ? formatChair(assignment.chair) : '';
+    
+    // Set editable values
+    document.getElementById('editPatientId').value = assignment.patient_id || '';
+    document.getElementById('editPatientName').value = assignment.patient_name || '';
+    document.getElementById('editPair').value = assignment.pair?.pair_id || '';
+    document.getElementById('editOperation').value = assignment.operation?.id || '';
+    
+    // Auto-update student info based on current pair
+    updateStudentInfo();
+}
+
+function populateEditWeekDropdown() {
+    const weekSelect = document.getElementById('editWeek');
+    const weeks = [...new Set(scheduleData.map(a => a.week?.week_label).filter(Boolean))].sort();
+    
+    weeks.forEach(week => {
+        const option = document.createElement('option');
+        option.value = week;
+        option.textContent = week;
+        weekSelect.appendChild(option);
+    });
+}
+
+function populateEditChairDropdown() {
+    const chairSelect = document.getElementById('editChair');
+    const chairs = [...new Set(scheduleData.map(a => a.chair).filter(Boolean))].sort((a, b) => {
+        const aNum = parseInt(a.match(/\d+/)?.[0] || '0');
+        const bNum = parseInt(b.match(/\d+/)?.[0] || '0');
+        return aNum - bNum;
+    });
+    
+    chairs.forEach(chair => {
+        const option = document.createElement('option');
+        option.value = chair;
+        option.textContent = chair;
+        chairSelect.appendChild(option);
+    });
+}
+
+function populateEditPairDropdown() {
+    const pairSelect = document.getElementById('editPair');
+    pairSelect.innerHTML = '<option value="">No Pair</option>';
+    
+    const pairs = [...new Set(scheduleData.map(a => a.pair?.pair_id).filter(Boolean))].sort((a, b) => {
+        const aMatch = a.match(/G(\d+)P(\d+)/);
+        const bMatch = b.match(/G(\d+)P(\d+)/);
+        if (!aMatch || !bMatch) return a.localeCompare(b);
+        const aGroup = parseInt(aMatch[1]);
+        const aPair = parseInt(aMatch[2]);
+        const bGroup = parseInt(bMatch[1]);
+        const bPair = parseInt(bMatch[2]);
+        if (aGroup !== bGroup) return aGroup - bGroup;
+        return aPair - bPair;
+    });
+    
+    pairs.forEach(pair => {
+        const option = document.createElement('option');
+        option.value = pair;
+        option.textContent = pair;
+        pairSelect.appendChild(option);
+    });
+}
+
+async function populateEditOperationDropdown() {
+    const operationSelect = document.getElementById('editOperation');
+    operationSelect.innerHTML = '<option value="">No Operation</option>';
+    
+    try {
+        // Fetch operations from API to get CDT codes
+        const response = await fetch('/api/operations/', {
+            headers: getAuthHeaders()
+        });
+        
+        if (response.ok) {
+            const operations = await response.json();
+            
+            operations.forEach(operation => {
+                const option = document.createElement('option');
+                option.value = operation.id; // Use operation ID as value
+                option.setAttribute('data-name', operation.name); // Store name as data attribute
+                
+                // Display format: "Name (CDT Code)" or just "Name" if no CDT code
+                let displayText = operation.name || 'Unnamed Operation';
+                if (operation.cdt_code) {
+                    displayText += ` (${operation.cdt_code})`;
+                }
+                option.textContent = displayText;
+                operationSelect.appendChild(option);
+            });
+        } else {
+            // Fallback to schedule data if API fails
+            const operations = [...new Set(scheduleData.map(a => a.operation?.name).filter(Boolean))].sort();
+            operations.forEach(operation => {
+                const option = document.createElement('option');
+                option.value = operation;
+                option.textContent = operation;
+                operationSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading operations:', error);
+        // Fallback to schedule data if API fails
+        const operations = [...new Set(scheduleData.map(a => a.operation?.name).filter(Boolean))].sort();
+        operations.forEach(operation => {
+            const option = document.createElement('option');
+            option.value = operation;
+            option.textContent = operation;
+            operationSelect.appendChild(option);
+        });
+    }
+}
+
+function updateStudentInfo() {
+    const pairId = document.getElementById('editPair').value;
+    
+    if (!pairId) {
+        // Clear student info if no pair selected
+        document.getElementById('editStudent1Display').value = '';
+        document.getElementById('editStudent2Display').value = '';
+        document.getElementById('editGradeDisplay').value = '';
+        return;
+    }
+    
+    // Find the pair in schedule data
+    const pair = scheduleData.find(a => a.pair?.pair_id === pairId)?.pair;
+    
+    if (pair) {
+        // Update student names
+        const student1Name = pair.student1 ? `${pair.student1.first_name} ${pair.student1.last_name}` : '';
+        const student2Name = pair.student2 ? `${pair.student2.first_name} ${pair.student2.last_name}` : '';
+        
+        document.getElementById('editStudent1Display').value = student1Name;
+        document.getElementById('editStudent2Display').value = student2Name;
+        
+        // Update grade - find the grade from any assignment with this pair
+        const assignmentWithGrade = scheduleData.find(a => a.pair?.pair_id === pairId);
+        const grade = assignmentWithGrade ? assignmentWithGrade.grade_combo : '';
+        document.getElementById('editGradeDisplay').value = grade;
+    } else {
+        // Clear if pair not found
+        document.getElementById('editStudent1Display').value = '';
+        document.getElementById('editStudent2Display').value = '';
+        document.getElementById('editGradeDisplay').value = '';
+    }
+}
+
+async function saveAssignment() {
+    if (!currentAssignment) return;
+    
+    // Get form data - only editable fields
+    const pairId = document.getElementById('editPair').value;
+    const operationId = document.getElementById('editOperation').value;
+    
+    // Find the pair_id from the pair name
+    let pairIdValue = null;
+    if (pairId) {
+        const pair = scheduleData.find(a => a.pair?.pair_id === pairId)?.pair;
+        pairIdValue = pair ? pair.id : null;
+    }
+    
+    // Use operation ID directly from dropdown
+    const operationIdValue = operationId ? parseInt(operationId) : null;
+    
+    const formData = {
+        week_id: currentAssignment.week?.id || currentAssignment.week_id,
+        day: currentAssignment.day,
+        time_slot: currentAssignment.time_slot,
+        chair: currentAssignment.chair,
+        pair_id: pairIdValue,
+        operation_id: operationIdValue,
+        patient_id: document.getElementById('editPatientId').value || null,
+        patient_name: document.getElementById('editPatientName').value || null,
+        status: currentAssignment.status || 'empty'
+    };
+    
+    try {
+        // Show loading state
+        const saveButton = document.querySelector('#editAssignmentModal .btn-primary');
+        const originalText = saveButton.textContent;
+        saveButton.textContent = 'Saving...';
+        saveButton.disabled = true;
+        
+        // Send update request
+        const response = await fetch(`/api/assignments/${currentAssignment.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            // Close edit modal
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editAssignmentModal'));
+            if (editModal) editModal.hide();
+            
+            // Update the specific assignment in the data without losing filter state
+            const updatedAssignment = await response.json();
+            const assignmentIndex = scheduleData.findIndex(a => a.id === currentAssignment.id);
+            if (assignmentIndex !== -1) {
+                scheduleData[assignmentIndex] = updatedAssignment;
+            }
+            
+            // Reapply current filters to maintain the same view
+            filterSchedule();
+            
+            // Ensure the updated assignment is visible in the filtered results
+            const updatedInFiltered = filteredData.find(a => a.id === currentAssignment.id);
+            if (!updatedInFiltered) {
+                // If the updated assignment was filtered out, add it back to filteredData
+                filteredData.push(updatedAssignment);
+                // Re-display the schedule to show the updated assignment
+                displaySchedule();
+                updateStatistics();
+            }
+            
+            // Show success message
+            showAlert('Assignment updated successfully!', 'success');
+        } else {
+            let errorMessage = 'Unknown error';
+            try {
+                const error = await response.json();
+                errorMessage = error.detail || error.message || 'Unknown error';
+            } catch (e) {
+                // If response is not JSON, use status text
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            }
+            showAlert(`Error updating assignment: ${errorMessage}`, 'danger');
+        }
+    } catch (error) {
+        console.error('Error saving assignment:', error);
+        showAlert('Error saving assignment. Please try again.', 'danger');
+    } finally {
+        // Reset button state
+        const saveButton = document.querySelector('#editAssignmentModal .btn-primary');
+        saveButton.textContent = 'Save Changes';
+        saveButton.disabled = false;
+    }
+}
+
+function showAlert(message, type = 'info') {
+    // Create alert element
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at top of page - try multiple selectors
+    let container = document.querySelector('.container-fluid');
+    if (!container) {
+        container = document.querySelector('.container');
+    }
+    if (!container) {
+        container = document.querySelector('main');
+    }
+    if (!container) {
+        container = document.body;
+    }
+    
+    if (container) {
+        container.insertBefore(alertDiv, container.firstChild);
+    } else {
+        // Fallback: just append to body
+        document.body.insertBefore(alertDiv, document.body.firstChild);
+    }
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function refreshSchedule() {
+    // Show loading state
+    const refreshBtn = document.querySelector('button[onclick="refreshSchedule()"]');
+    const originalText = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    refreshBtn.disabled = true;
+    
+    // Load data
+    loadScheduleData().finally(() => {
+        // Reset button state
+        refreshBtn.innerHTML = originalText;
+        refreshBtn.disabled = false;
+    });
+}
+
+function exportSchedule() {
+    if (!scheduleData || scheduleData.length === 0) {
+        alert('No schedule data to export');
+        return;
+    }
+
+    // Get current filtered data
+    const currentData = filteredData || scheduleData;
+    
+    // Group data by week for better organization
+    const weeks = [...new Set(currentData.map(assignment => assignment.week?.week_label))].filter(Boolean);
+    
+    if (weeks.length === 0) {
+        alert('No valid week data found');
+        return;
+    }
+
+    // Day mapping for array indexing
+    const dayMapping = {
+        'Monday': 0,
+        'Tuesday': 1,
+        'Wednesday': 2,
+        'Thursday': 3,
+        'Friday': 4
+    };
+
+    // Create HTML file with embedded CSS for Excel compatibility
+    let htmlContent = `
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            table { 
+                border-collapse: collapse; 
+                width: 100%; 
+                margin-bottom: 30px; 
+                font-family: Arial, sans-serif;
+            }
+            th, td { 
+                border: 1px solid #333; 
+                padding: 8px; 
+                text-align: center; 
+                vertical-align: top; 
+            }
+            th { 
+                background-color: #212529 !important; 
+                color: white !important; 
+                font-weight: bold; 
+            }
+            .am-row { 
+                background-color: #cce5ff !important; 
+            }
+            .pm-row { 
+                background-color: #fff2cc !important; 
+            }
+            .week-header { 
+                font-size: 18px; 
+                font-weight: bold; 
+                margin: 20px 0 10px 0; 
+                color: #0066cc;
+            }
+            .cell-content { 
+                font-size: 12px; 
+                line-height: 1.3; 
+                text-align: left;
+            }
+            .operation { 
+                font-weight: bold; 
+                color: #0066cc; 
+            }
+            .patient { 
+                font-weight: bold; 
+                color: #333;
+            }
+            .students { 
+                color: #666; 
+                font-style: italic;
+            }
+            .pair-grade { 
+                color: #006600; 
+                font-weight: bold;
+            }
+            .chair-time { 
+                font-weight: bold; 
+                color: #333;
+            }
+            .time-slot { 
+                color: #666; 
+                font-size: 11px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Clinic Schedule Export</h1>
+        <p>Generated on: ${new Date().toLocaleString()}</p>
+        <p>Total Assignments: ${currentData.length}</p>
+    `;
+
+    // Process each week
+    weeks.forEach((weekLabel, weekIndex) => {
+        htmlContent += `<div class="week-header">Week: ${weekLabel}</div>`;
+        
+        // Get assignments for this week
+        const weekAssignments = currentData.filter(assignment => assignment.week?.week_label === weekLabel);
+        
+        // Group by chair and time slot
+        const groupedData = {};
+        weekAssignments.forEach(assignment => {
+            const key = `${assignment.chair}-${assignment.time_slot}`;
+            if (!groupedData[key]) {
+                groupedData[key] = {
+                    chair: assignment.chair,
+                    timeSlot: assignment.time_slot,
+                    days: [null, null, null, null, null] // Monday to Friday
+                };
+            }
+            
+            const dayIndex = dayMapping[assignment.day];
+            if (dayIndex !== undefined) {
+                groupedData[key].days[dayIndex] = assignment;
+            }
+        });
+
+        // Sort by chair first, then by time (AM then PM for each chair)
+        const sortedKeys = Object.keys(groupedData).sort((a, b) => {
+            const [chairA, timeA] = a.split('-');
+            const [chairB, timeB] = b.split('-');
+            
+            // First sort by chair number
+            const chairNumA = parseInt(chairA.replace(/\D/g, ''));
+            const chairNumB = parseInt(chairB.replace(/\D/g, ''));
+            
+            if (chairNumA !== chairNumB) {
+                return chairNumA - chairNumB;
+            }
+            
+            // Then by time (chronological order within each chair)
+            const getStartTime = (timeSlot) => {
+                const normalizedTimeSlot = timeSlot.replace(/[â€"–—]/g, '-');
+                const startTime = normalizedTimeSlot.split('-')[0];
+                const [hours, minutes] = startTime.split(':').map(Number);
+                return hours * 60 + minutes;
+            };
+            
+            const timeA_minutes = getStartTime(timeA);
+            const timeB_minutes = getStartTime(timeB);
+            
+            return timeA_minutes - timeB_minutes;
+        });
+
+        // Calculate dates for this week
+        const [startDateStr] = weekLabel.split('-');
+        const startDate = new Date(startDateStr);
+        const dayOfWeek = startDate.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const mondayDate = new Date(startDate);
+        mondayDate.setDate(startDate.getDate() + mondayOffset);
+        
+        const dayDates = [];
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        for (let i = 0; i < 5; i++) {
+            const currentDate = new Date(mondayDate);
+            currentDate.setDate(mondayDate.getDate() + i);
+            const dateStr = currentDate.toLocaleDateString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                year: 'numeric'
+            });
+            dayDates.push(`${dayNames[i]} (${dateStr})`);
+        }
+
+        // Create HTML table
+        htmlContent += `
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 140px;">Chair / Time</th>
+        `;
+        dayDates.forEach(date => {
+            htmlContent += `<th>${date}</th>`;
+        });
+        htmlContent += `
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        // Create data rows
+        sortedKeys.forEach(key => {
+            const rowData = groupedData[key];
+            
+            // Determine AM/PM for row class
+            const normalizedTimeSlot = rowData.timeSlot.replace(/[â€"–—]/g, '-');
+            const startTime = normalizedTimeSlot.split('-')[0];
+            const [hours] = startTime.split(':').map(Number);
+            const rowClass = hours < 12 ? 'am-row' : 'pm-row';
+            
+            htmlContent += `<tr class="${rowClass}">`;
+            htmlContent += `<td class="chair-time">${formatChair(rowData.chair)}<br><span class="time-slot">${normalizedTimeSlot}</span></td>`;
+            
+            rowData.days.forEach(assignment => {
+                if (assignment) {
+                    let cellContent = '<div class="cell-content">';
+                    
+                    // Add operation and patient info
+                    if (assignment.operation?.name) {
+                        cellContent += `<div class="operation">${assignment.operation.name}</div>`;
+                    }
+                    
+                    if (assignment.patient_name) {
+                        cellContent += `<div class="patient">Patient: ${assignment.patient_name}`;
+                        if (assignment.patient_id) {
+                            cellContent += ` (${assignment.patient_id})`;
+                        }
+                        cellContent += '</div>';
+                    }
+                    
+                    // Add student info if showStudents is true
+                    if (showStudents) {
+                        if (assignment.pair?.pair_id) {
+                            cellContent += `<div class="pair-grade">${assignment.pair.pair_id}`;
+                            if (assignment.grade_combo) {
+                                cellContent += ` ${assignment.grade_combo}`;
+                            }
+                            cellContent += '</div>';
+                        }
+                        
+                        let studentInfo = '';
+                        if (assignment.pair?.student1) {
+                            studentInfo += `${assignment.pair.student1.first_name} ${assignment.pair.student1.last_name}`;
+                        }
+                        if (assignment.pair?.student2) {
+                            if (studentInfo) studentInfo += ', ';
+                            studentInfo += `${assignment.pair.student2.first_name} ${assignment.pair.student2.last_name}`;
+                        }
+                        if (studentInfo) {
+                            cellContent += `<div class="students">${studentInfo}</div>`;
+                        }
+                    }
+                    
+                    cellContent += '</div>';
+                    htmlContent += `<td>${cellContent}</td>`;
+                } else {
+                    htmlContent += '<td>-</td>';
+                }
+            });
+            htmlContent += '</tr>';
+        });
+        
+        htmlContent += `
+            </tbody>
+        </table>
+        `;
+    });
+
+    htmlContent += `
+    </body>
+    </html>
+    `;
+
+    // Download as HTML file (can be opened in Excel with colors)
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clinic_schedule_export_${new Date().toISOString().split('T')[0]}.html`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    // Show success message
+    showAlert('Schedule exported successfully! Open the HTML file in Excel to see formatted colors.', 'success');
+}
+
+function showError(message) {
+    const container = document.getElementById('scheduleContainer');
+    container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+}
+
+// View toggle functionality
+let isSpreadsheetView = showStudents ? true : true; // Front desk always spreadsheet view, admin/faculty can toggle
+
+function toggleView() {
+    // Only allow toggling for admin and faculty users
+    if (!showStudents) {
+        return; // Front desk users cannot toggle views
+    }
+    
+    isSpreadsheetView = !isSpreadsheetView;
+    const btn = document.getElementById('viewToggleBtn');
+    
+    if (isSpreadsheetView) {
+        btn.innerHTML = '<i class="fas fa-list me-2"></i>List View';
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-secondary');
+    } else {
+        btn.innerHTML = '<i class="fas fa-table me-2"></i>Spreadsheet View';
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-outline-secondary');
+    }
+    
+    displaySchedule();
+}
+
+function displaySchedule() {
+    const container = document.getElementById('scheduleContainer');
+    
+    if (filteredData.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No assignments found matching the current filters.</div>';
+        return;
+    }
+    
+    if (isSpreadsheetView) {
+        displaySpreadsheetView();
+    } else {
+        displayListView();
+    }
+}
+
+function displayListView() {
+    const container = document.getElementById('scheduleContainer');
+    
+    // Group data by week, day, AM/PM, and chair (filteredData is already sorted)
+    const groupedData = {};
+    filteredData.forEach(assignment => {
+        const week = assignment.week?.week_label || 'Unknown Week';
+        const day = assignment.day || 'Unknown Day';
+        const chair = assignment.chair || 'Unknown Chair';
+        
+        // Determine AM/PM
+        const startTime = assignment.time_slot.split('-')[0];
+        const hours = parseInt(startTime.split(':')[0]);
+        const timePeriod = hours < 12 ? 'AM' : 'PM';
+        
+        if (!groupedData[week]) groupedData[week] = {};
+        if (!groupedData[week][day]) groupedData[week][day] = {};
+        if (!groupedData[week][day][timePeriod]) groupedData[week][day][timePeriod] = {};
+        if (!groupedData[week][day][timePeriod][chair]) groupedData[week][day][timePeriod][chair] = [];
+        
+        groupedData[week][day][timePeriod][chair].push(assignment);
+    });
+    
+    let html = '';
+    
+    // Sort weeks (use same logic as filterSchedule)
+    const sortedWeeks = Object.keys(groupedData).sort((a, b) => {
+        return a.localeCompare(b); // Use same sorting as filterSchedule
+    });
+    
+    sortedWeeks.forEach(week => {
+        html += `<div class="mb-4">`;
+        html += `<h4 class="text-primary">${week}</h4>`;
+        
+        const weekData = groupedData[week];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        
+        const dayLabels = getDayLabelsForWeek(week);
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        
+        days.forEach(day => {
+            if (weekData[day]) {
+                const dayIndex = dayNames.indexOf(day);
+                const dayLabel = dayIndex >= 0 ? dayLabels[dayIndex] : day;
+                html += `<div class="mb-3">`;
+                html += `<h5 class="text-secondary">${dayLabel}</h5>`;
+                
+                // Show AM first, then PM
+                const timePeriods = ['AM', 'PM'];
+                
+                timePeriods.forEach(timePeriod => {
+                    if (weekData[day][timePeriod]) {
+                        html += `<div class="mb-2">`;
+                        html += `<h6 class="text-info">${timePeriod}</h6>`;
+                        
+                        // Sort chairs numerically within each time period
+                        const sortedChairs = Object.keys(weekData[day][timePeriod]).sort((a, b) => {
+                    const aNum = parseInt(a.match(/\d+/)?.[0] || '0');
+                    const bNum = parseInt(b.match(/\d+/)?.[0] || '0');
+                    return aNum - bNum;
+                });
+                
+                sortedChairs.forEach(chair => {
+                            const chairAssignments = weekData[day][timePeriod][chair];
+                    
+                    html += `<div class="mb-2">`;
+                    html += `<h6 class="text-info">${formatChair(chair)}</h6>`;
+                    html += `<div class="table-responsive">`;
+                    html += `<table class="table table-sm table-striped">`;
+                            html += `<thead class="table-dark">`;
+                            html += `<tr><th style="color: white;">Time Slot</th><th style="color: white;">Operation</th><th style="color: white;">Patient ID</th><th style="color: white;">Patient Name</th><th style="color: white;">Pair ID</th><th style="color: white;">Grade</th><th style="color: white;">Student 1</th><th style="color: white;">Student 2</th><th style="color: white;">Status</th><th style="color: white;">Actions</th></tr>`;
+                    html += `</thead><tbody>`;
+                    
+                            // Sort assignments by time slot within the same AM/PM period
+                    const sortedAssignments = chairAssignments.sort((a, b) => {
+                        const timeOrder = ['8:00–9:20', '9:20–10:40', '10:40–12:00', '13:00–14:20', '14:20–15:40', '15:40–17:00'];
+                        return timeOrder.indexOf(a.time_slot) - timeOrder.indexOf(b.time_slot);
+                    });
+                    
+                    sortedAssignments.forEach(assignment => {
+                        const statusClass = assignment.status === 'assigned' ? 'success' : 'secondary';
+                        const statusText = assignment.status === 'assigned' ? 'Assigned' : 'Empty';
+                        
+                        // Determine AM/PM for row highlighting
+                        const startTime = assignment.time_slot.split('-')[0];
+                        const hours = parseInt(startTime.split(':')[0]);
+                        const rowClass = hours < 12 ? 'am-row' : 'pm-row';
+                        
+                        // Get student names directly from assignment
+                        let student1Name = assignment.student1_name || 'N/A';
+                        let student2Name = assignment.student2_name || 'N/A';
+                        
+                        html += `<tr class="${rowClass}">`;
+                        html += `<td>${assignment.time_slot}</td>`;
+                        html += `<td>${assignment.operation?.name || 'N/A'}</td>`;
+                        html += `<td>${assignment.patient_id || 'N/A'}</td>`;
+                        html += `<td>${assignment.patient_name || 'N/A'}</td>`;
+                        html += `<td>${assignment.pair_id || 'N/A'}</td>`;
+                        html += `<td>${assignment.grade_combo || 'N/A'}</td>`;
+                        html += `<td>${student1Name}</td>`;
+                        html += `<td>${student2Name}</td>`;
+                        html += `<td><span class="badge bg-${statusClass}">${statusText}</span></td>`;
+                        html += `<td>`;
+                        html += `<button class="btn btn-sm btn-outline-primary" onclick="viewAssignment(${assignment.id})">`;
+                        html += `<i class="fas fa-eye"></i></button>`;
+                        html += `</td>`;
+                        html += `</tr>`;
+                    });
+                    
+                    html += `</tbody></table></div></div>`;
+                });
+                
+                        html += `</div>`; // Close timePeriod div
+                    }
+                });
+                
+                html += `</div>`; // Close day div
+            }
+        });
+        
+        html += `</div>`; // Close week div
+    });
+    
+    container.innerHTML = html;
+}
+
+function displaySpreadsheetView() {
+    const container = document.getElementById('scheduleContainer');
+    
+    // Group data by week
+    const groupedData = {};
+    filteredData.forEach(assignment => {
+        const week = assignment.week?.week_label || 'Unknown Week';
+        if (!groupedData[week]) groupedData[week] = [];
+        groupedData[week].push(assignment);
+    });
+    
+    let html = '';
+    
+    // Sort weeks
+    const sortedWeeks = Object.keys(groupedData).sort((a, b) => {
+        const aNum = parseInt(a.match(/\d+/)?.[0] || '0');
+        const bNum = parseInt(b.match(/\d+/)?.[0] || '0');
+        return aNum - bNum;
+    });
+    
+    sortedWeeks.forEach(week => {
+        html += `<div class="mb-4">`;
+        html += `<h4 class="text-primary mb-3">${week}</h4>`;
+        
+        const weekAssignments = groupedData[week];
+        const dayLabels = getDayLabelsForWeek(week);
+        
+        // Create spreadsheet table
+        html += `<div class="table-responsive">`;
+        html += `<table class="table table-bordered table-sm">`;
+        html += `<thead class="table-dark">`;
+        html += `<tr>`;
+        html += `<th style="width: 140px; color: white;">Chair / Time</th>`;
+        html += `<th style="color: white;">${dayLabels[0]}</th>`;
+        html += `<th style="color: white;">${dayLabels[1]}</th>`;
+        html += `<th style="color: white;">${dayLabels[2]}</th>`;
+        html += `<th style="color: white;">${dayLabels[3]}</th>`;
+        html += `<th style="color: white;">${dayLabels[4]}</th>`;
+        html += `</tr>`;
+        html += `</thead>`;
+        html += `<tbody>`;
+        
+        // Get all chair+time rows
+        const rows = [...new Set(weekAssignments.map(a => `${a.chair}||${a.time_slot}`))].sort((a, b) => {
+            const aNum = parseInt(a.split('||')[0].match(/\d+/)?.[0] || '0');
+            const bNum = parseInt(b.split('||')[0].match(/\d+/)?.[0] || '0');
+            return aNum - bNum;
+        });
+        
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        rows.forEach(rc => {
+            const [chair, time] = rc.split('||');
+            
+            // Determine AM/PM for row highlighting
+            const startTime = time.split('-')[0];
+            const hours = parseInt(startTime.split(':')[0]);
+            const rowClass = hours < 12 ? 'am-row' : 'pm-row';
+            
+            html += `<tr class="${rowClass}">`;
+            html += `<td><div class="fw-bold">${formatChair(chair)}</div><div class="text-muted small">${time}</div></td>`;
+            days.forEach(day => {
+                const a = weekAssignments.find(x => x.chair === chair && x.time_slot === time && x.day === day);
+                if (a) {
+                    const op = a.operation?.name || '';
+                    const p = a.patient_name || '';
+                    const pid = a.patient_id || '';
+                    let content = `${op}${op && (p||pid) ? ' - ' : ''}${p}${pid ? ' ('+pid+')' : ''}`;
+                    if (showStudents) {
+                        const pair = a.pair_id || '';
+                        const s1 = a.student1_name || '';
+                        const s2 = a.student2_name || '';
+                        const grade = a.grade_combo || '';
+                        const line2 = [pair, grade].filter(Boolean).join(' ');
+                        const line3 = [s1, s2].filter(Boolean).join(', ');
+                        if (line2 || line3) {
+                            content += `${content ? '<br>' : ''}<small class="text-muted">${line2}${line3 ? '<br>'+line3 : ''}</small>`;
+                        }
+                    }
+                    html += `<td class="small">${content}</td>`;
+                } else {
+                    html += `<td class="text-muted small"></td>`;
+                }
+            });
+            html += `</tr>`;
+        });
+        
+        html += `</tbody>`;
+        html += `</table>`;
+        html += `</div>`;
+        html += `</div>`;
+    });
+    
+    container.innerHTML = html;
+}
+</script>
+{% endblock %}

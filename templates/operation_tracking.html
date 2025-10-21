@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+
+{% block title %}Treatment Tracking - CNU Dental Clinic Scheduler{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-chart-bar me-2"></i>Treatment Tracking by Pair</h1>
+            <div>
+                <button class="btn btn-primary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+                <button class="btn btn-success" onclick="exportData()">
+                    <i class="fas fa-download me-2"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="pairFilter" class="form-label">Pair</label>
+                        <select class="form-select" id="pairFilter" onchange="filterData()">
+                            <option value="">All Pairs</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="gradeFilter" class="form-label">Grade Combination</label>
+                        <select class="form-select" id="gradeFilter" onchange="filterData()">
+                            <option value="">All Grades</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="operationFilter" class="form-label">Operation</label>
+                        <select class="form-select" id="operationFilter" onchange="filterData()">
+                            <option value="">All Operations</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sortBy" class="form-label">Sort By</label>
+                        <select class="form-select" id="sortBy" onchange="sortData()">
+                            <option value="total">Total Operations</option>
+                            <option value="pair_id">Pair ID</option>
+                            <option value="grade">Grade Combination</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Treatment Tracking Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Treatment Tracking by Pair</h5>
+            </div>
+            <div class="card-body">
+                <div id="trackingContainer">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading treatment tracking data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h3 class="text-primary" id="totalPairs">0</h3>
+                <p class="text-muted">Total Pairs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h3 class="text-success" id="totalOperations">0</h3>
+                <p class="text-muted">Total Operations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h3 class="text-warning" id="avgOperations">0</h3>
+                <p class="text-muted">Avg Operations/Pair</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h3 class="text-info" id="activePairs">0</h3>
+                <p class="text-muted">Active Pairs</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let trackingData = [];
+let filteredData = [];
+let operations = [];
+
+// Helper function to get cookie value
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+    const token = getCookie('access_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadTrackingData();
+});
+
+async function loadTrackingData() {
+    try {
+        const response = await fetch('/api/operation-tracking/', {
+            headers: getAuthHeaders()
+        });
+        if (response.ok) {
+            trackingData = await response.json();
+            console.log('DEBUG: Loaded tracking data:', trackingData.length, 'pairs');
+            
+            // Fixed CDT groups for columns/filters
+            operations = ['D01XX','D1XXX','D2XXX','D3XXX','D4XXX','D5XXX','D6XXX','D7XXX'];
+            
+            populateFilters();
+            filterData();
+            updateStatistics();
+        } else {
+            showError('Failed to load treatment tracking data');
+        }
+    } catch (error) {
+        console.error('Error loading tracking data:', error);
+        showError('Error loading treatment tracking data');
+    }
+}
+
+function populateFilters() {
+    // Populate pair filter
+    const pairFilter = document.getElementById('pairFilter');
+    pairFilter.innerHTML = '<option value="">All Pairs</option>';
+    const pairs = [...new Set(trackingData.map(p => p.pair_id))].sort((a, b) => {
+        // Extract group and pair numbers for proper numerical sorting
+        const aMatch = a.match(/G(\d+)P(\d+)/);
+        const bMatch = b.match(/G(\d+)P(\d+)/);
+        
+        if (!aMatch || !bMatch) return a.localeCompare(b);
+        
+        const aGroup = parseInt(aMatch[1]);
+        const aPair = parseInt(aMatch[2]);
+        const bGroup = parseInt(bMatch[1]);
+        const bPair = parseInt(bMatch[2]);
+        
+        // First sort by group, then by pair number
+        if (aGroup !== bGroup) {
+            return aGroup - bGroup;
+        }
+        return aPair - bPair;
+    });
+    pairs.forEach(pairId => {
+        const option = document.createElement('option');
+        option.value = pairId;
+        option.textContent = pairId;
+        pairFilter.appendChild(option);
+    });
+    
+    // Populate grade filter
+    const gradeFilter = document.getElementById('gradeFilter');
+    gradeFilter.innerHTML = '<option value="">All Grades</option>';
+    const grades = [...new Set(trackingData.map(p => p.grade_combo))].sort();
+    grades.forEach(grade => {
+        const option = document.createElement('option');
+        option.value = grade;
+        option.textContent = grade;
+        gradeFilter.appendChild(option);
+    });
+    
+    // Populate operation filter with all operations
+    const operationFilter = document.getElementById('operationFilter');
+    operationFilter.innerHTML = '<option value="">All Operations</option>';
+    operations.forEach(operation => {
+        const option = document.createElement('option');
+        option.value = operation;
+        option.textContent = operation;
+        operationFilter.appendChild(option);
+    });
+}
+
+function filterData() {
+    const pairFilter = document.getElementById('pairFilter').value;
+    const gradeFilter = document.getElementById('gradeFilter').value;
+    const operationFilter = document.getElementById('operationFilter').value;
+    
+    filteredData = trackingData.filter(pair => {
+        const matchesPair = !pairFilter || pair.pair_id === pairFilter;
+        const matchesGrade = !gradeFilter || pair.grade_combo === gradeFilter;
+        const matchesOperation = !operationFilter || pair.operations_breakdown[operationFilter] > 0;
+        
+        return matchesPair && matchesGrade && matchesOperation;
+    });
+    
+    sortData();
+}
+
+function sortData() {
+    const sortBy = document.getElementById('sortBy').value;
+    
+    filteredData.sort((a, b) => {
+        switch (sortBy) {
+            case 'total':
+                return b.total_operations - a.total_operations;
+            case 'pair_id':
+                // Use numerical sorting for pair IDs
+                const aMatch = a.pair_id.match(/G(\d+)P(\d+)/);
+                const bMatch = b.pair_id.match(/G(\d+)P(\d+)/);
+                
+                if (!aMatch || !bMatch) return a.pair_id.localeCompare(b.pair_id);
+                
+                const aGroup = parseInt(aMatch[1]);
+                const aPair = parseInt(aMatch[2]);
+                const bGroup = parseInt(bMatch[1]);
+                const bPair = parseInt(bMatch[2]);
+                
+                // First sort by group, then by pair number
+                if (aGroup !== bGroup) {
+                    return aGroup - bGroup;
+                }
+                return aPair - bPair;
+            case 'grade':
+                return a.grade_combo.localeCompare(b.grade_combo);
+            default:
+                return 0;
+        }
+    });
+    
+    displayTrackingData();
+}
+
+function displayTrackingData() {
+    const container = document.getElementById('trackingContainer');
+    
+    if (filteredData.length === 0) {
+        container.innerHTML = '<div class="alert alert-info">No pairs found matching the current filters.</div>';
+        return;
+    }
+    
+    // Create table
+    let html = '<div class="table-responsive">';
+    html += '<table class="table table-striped table-hover">';
+               html += '<thead class="table-primary">';
+    html += '<tr>';
+    html += '<th>Pair ID</th>';
+    html += '<th>Student 1</th>';
+    html += '<th>Student 2</th>';
+    html += '<th>Grade Combo</th>';
+    html += '<th>Total Operations</th>';
+    
+    // Add operation columns
+    operations.forEach(operation => {
+        html += `<th>${operation}</th>`;
+    });
+    
+    html += '</tr>';
+    html += '</thead>';
+    html += '<tbody>';
+    
+    filteredData.forEach(pair => {
+        html += '<tr>';
+        html += `<td><strong>${pair.pair_id}</strong></td>`;
+        html += `<td>${pair.student1_name}</td>`;
+        html += `<td>${pair.student2_name}</td>`;
+        html += `<td><span class="badge bg-info">${pair.grade_combo}</span></td>`;
+        html += `<td><span class="badge bg-primary">${pair.total_operations}</span></td>`;
+        
+        // Add operation counts
+        operations.forEach(operation => {
+            const count = pair.operations_breakdown[operation] || 0;
+            const badgeClass = count > 0 ? 'bg-success' : 'bg-secondary';
+            html += `<td><span class="badge ${badgeClass}">${count}</span></td>`;
+        });
+        
+        html += '</tr>';
+    });
+    
+    html += '</tbody>';
+    html += '</table>';
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
+function updateStatistics() {
+    const totalPairs = filteredData.length;
+    const totalOperations = filteredData.reduce((sum, pair) => sum + pair.total_operations, 0);
+    const avgOperations = totalPairs > 0 ? Math.round(totalOperations / totalPairs * 10) / 10 : 0;
+    const activePairs = filteredData.filter(pair => pair.total_operations > 0).length;
+    
+    document.getElementById('totalPairs').textContent = totalPairs;
+    document.getElementById('totalOperations').textContent = totalOperations;
+    document.getElementById('avgOperations').textContent = avgOperations;
+    document.getElementById('activePairs').textContent = activePairs;
+}
+
+function refreshData() {
+    // Show loading state
+    const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
+    const originalText = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    refreshBtn.disabled = true;
+    
+    // Load data
+    loadTrackingData().finally(() => {
+        // Reset button state
+        refreshBtn.innerHTML = originalText;
+        refreshBtn.disabled = false;
+    });
+}
+
+function exportData() {
+    if (!trackingData || trackingData.length === 0) {
+        alert('No treatment tracking data to export');
+        return;
+    }
+
+    // Get current filtered data
+    const currentData = filteredData || trackingData;
+    
+    if (currentData.length === 0) {
+        alert('No data found matching current filters');
+        return;
+    }
+
+    // Create HTML file with embedded CSS for Excel compatibility
+    let htmlContent = `
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+            }
+            h1 { 
+                color: #0066cc; 
+                border-bottom: 2px solid #0066cc; 
+                padding-bottom: 10px; 
+            }
+            .stats { 
+                display: flex; 
+                justify-content: space-around; 
+                margin: 20px 0; 
+                background-color: #f8f9fa; 
+                padding: 15px; 
+                border-radius: 5px; 
+            }
+            .stat-item { 
+                text-align: center; 
+            }
+            .stat-number { 
+                font-size: 24px; 
+                font-weight: bold; 
+                color: #0066cc; 
+            }
+            .stat-label { 
+                color: #666; 
+                font-size: 14px; 
+            }
+            table { 
+                border-collapse: collapse; 
+                width: 100%; 
+                margin-top: 20px; 
+            }
+            th, td { 
+                border: 1px solid #333; 
+                padding: 8px; 
+                text-align: center; 
+            }
+            th { 
+                background-color: #cce5ff !important; 
+                color: #333 !important; 
+                font-weight: bold; 
+            }
+            .pair-id { 
+                font-weight: bold; 
+                color: #0066cc; 
+            }
+            .grade-badge { 
+                background-color: #17a2b8; 
+                color: white; 
+                padding: 2px 6px; 
+                border-radius: 3px; 
+                font-size: 12px; 
+            }
+            .total-badge { 
+                background-color: #007bff; 
+                color: white; 
+                padding: 2px 6px; 
+                border-radius: 3px; 
+                font-size: 12px; 
+            }
+            .operation-badge { 
+                padding: 2px 6px; 
+                border-radius: 3px; 
+                font-size: 12px; 
+            }
+            .operation-success { 
+                background-color: #28a745; 
+                color: white; 
+            }
+            .operation-secondary { 
+                background-color: #6c757d; 
+                color: white; 
+            }
+            .export-info { 
+                margin-bottom: 20px; 
+                color: #666; 
+                font-size: 14px; 
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Treatment Tracking by Pair</h1>
+        <div class="export-info">
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+            <p>Total Pairs: ${currentData.length}</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">${currentData.length}</div>
+                <div class="stat-label">Total Pairs</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${currentData.reduce((sum, pair) => sum + pair.total_operations, 0)}</div>
+                <div class="stat-label">Total Operations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${(currentData.reduce((sum, pair) => sum + pair.total_operations, 0) / currentData.length).toFixed(1)}</div>
+                <div class="stat-label">Avg Operations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">${currentData.filter(pair => pair.total_operations > 0).length}</div>
+                <div class="stat-label">Active Pairs</div>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Pair ID</th>
+                    <th>Student 1</th>
+                    <th>Student 2</th>
+                    <th>Grade Combo</th>
+                    <th>Total Operations</th>
+    `;
+
+    // Add operation columns
+    operations.forEach(operation => {
+        htmlContent += `<th>${operation}</th>`;
+    });
+
+    htmlContent += `
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    // Add data rows
+    currentData.forEach(pair => {
+        htmlContent += '<tr>';
+        htmlContent += `<td class="pair-id">${pair.pair_id}</td>`;
+        htmlContent += `<td>${pair.student1_name}</td>`;
+        htmlContent += `<td>${pair.student2_name}</td>`;
+        htmlContent += `<td><span class="grade-badge">${pair.grade_combo}</span></td>`;
+        htmlContent += `<td><span class="total-badge">${pair.total_operations}</span></td>`;
+        
+        // Add operation counts
+        operations.forEach(operation => {
+            const count = pair.operations_breakdown[operation] || 0;
+            const badgeClass = count > 0 ? 'operation-success' : 'operation-secondary';
+            htmlContent += `<td><span class="operation-badge ${badgeClass}">${count}</span></td>`;
+        });
+        
+        htmlContent += '</tr>';
+    });
+
+    htmlContent += `
+            </tbody>
+        </table>
+    </body>
+    </html>
+    `;
+
+    // Download as HTML file (can be opened in Excel with colors)
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `operation_tracking_export_${new Date().toISOString().split('T')[0]}.html`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    // Show success message
+    showAlert('Treatment tracking data exported successfully! Open the HTML file in Excel to see formatted colors.', 'success');
+}
+
+function showError(message) {
+    const container = document.getElementById('trackingContainer');
+    container.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+}
+</script>
+{% endblock %}
