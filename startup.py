@@ -32,7 +32,11 @@ def main():
     if not run_command("python migrate.py", "Database migration"):
         print("⚠️  Database migration failed, but continuing...")
     
-    # Step 2: Import data from JSON files (if they exist)
+    # Step 2: Test database connection
+    if not run_command("python test_db.py", "Database connection test"):
+        print("⚠️  Database connection test failed, but continuing...")
+    
+    # Step 3: Import data from JSON files (if they exist)
     if os.path.exists("data/users.json"):
         if not run_command("python import_data.py", "Data import from JSON files"):
             print("⚠️  Data import failed, but continuing...")
