@@ -1,0 +1,802 @@
+[
+  {
+    "student_id": "S26X2",
+    "first_name": "Christopher",
+    "last_name": "Azali",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X3",
+    "first_name": "Janu",
+    "last_name": "Bhakta",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X4",
+    "first_name": "Adriana",
+    "last_name": "Canby",
+    "grade_level": 4,
+    "externship_start_date": "2026-01-12",
+    "externship_end_date": "2026-02-26",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X6",
+    "first_name": "Maria",
+    "last_name": "Cortez",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2688",
+    "first_name": "Jennifer",
+    "last_name": "Torres Diaz",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X7",
+    "first_name": "Sevinch",
+    "last_name": "Djalilova",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2625",
+    "first_name": "Emma",
+    "last_name": "Foy",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2626",
+    "first_name": "James",
+    "last_name": "Huynh",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2627",
+    "first_name": "Luma",
+    "last_name": "Jaber",
+    "grade_level": 4,
+    "externship_start_date": "2026-01-12",
+    "externship_end_date": "2026-02-26",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X8",
+    "first_name": "Adam",
+    "last_name": "Lampe",
+    "grade_level": 4,
+    "externship_start_date": "2026-01-12",
+    "externship_end_date": "2026-02-26",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2681",
+    "first_name": "Colin",
+    "last_name": "Lawler",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2682",
+    "first_name": "Ali",
+    "last_name": "Mandalawi",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2683",
+    "first_name": "Demetre",
+    "last_name": "Markopoulos",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2684",
+    "first_name": "Logan",
+    "last_name": "Morrison",
+    "grade_level": 4,
+    "externship_start_date": "2026-01-12",
+    "externship_end_date": "2026-02-26",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2685",
+    "first_name": "Kaleelah",
+    "last_name": "Muhammad",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2686",
+    "first_name": "Aaron",
+    "last_name": "Nguyen",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2665",
+    "first_name": "Andrew",
+    "last_name": "Nguyen",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2677",
+    "first_name": "Jerry",
+    "last_name": "Nguyen",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2666",
+    "first_name": "Thanuchporn",
+    "last_name": "Nonnapaporn",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2667",
+    "first_name": "Janice",
+    "last_name": "Park",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2668",
+    "first_name": "Madison",
+    "last_name": "Parker",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2641",
+    "first_name": "Tilak",
+    "last_name": "Patel",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2643",
+    "first_name": "Nathan",
+    "last_name": "Pineda",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X1",
+    "first_name": "Baker",
+    "last_name": "Al Rawi",
+    "grade_level": 4,
+    "externship_start_date": "2026-01-12",
+    "externship_end_date": "2026-02-26",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2644",
+    "first_name": "Idean",
+    "last_name": "Rezaei",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2645",
+    "first_name": "Charankyla",
+    "last_name": "Sandhu",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2646",
+    "first_name": "Ariga",
+    "last_name": "Sarkissian",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2647",
+    "first_name": "Rita",
+    "last_name": "Shdid",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2621",
+    "first_name": "Jaspreet",
+    "last_name": "Singh",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2687",
+    "first_name": "Ariga",
+    "last_name": "Tahmasian",
+    "grade_level": 4,
+    "externship_start_date": "2026-01-12",
+    "externship_end_date": "2026-02-26",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2661",
+    "first_name": "An",
+    "last_name": "Tran",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2662",
+    "first_name": "Gary",
+    "last_name": "Vu",
+    "grade_level": 4,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2774",
+    "first_name": "Yahya",
+    "last_name": "Alaswad",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2754",
+    "first_name": "Jamal",
+    "last_name": "Ali",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2713",
+    "first_name": "Daniel",
+    "last_name": "Bader",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2791",
+    "first_name": "Keya",
+    "last_name": "Bajaria",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2736",
+    "first_name": "Abby",
+    "last_name": "Barger",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2757",
+    "first_name": "Bethany",
+    "last_name": "Cheng",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2772",
+    "first_name": "Ali",
+    "last_name": "Danesh",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2775",
+    "first_name": "Jaclyn",
+    "last_name": "Dang",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2794",
+    "first_name": "Ali",
+    "last_name": "Elsebaei",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2751",
+    "first_name": "Abdelrahman",
+    "last_name": "Elsemary",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2781",
+    "first_name": "Neda",
+    "last_name": "Emami",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2773",
+    "first_name": "Rachel",
+    "last_name": "Ferster",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2712",
+    "first_name": "Yusuf",
+    "last_name": "Hassan",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2793",
+    "first_name": "Samantha",
+    "last_name": "Hoang",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2716",
+    "first_name": "Antony",
+    "last_name": "Ibrahim",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2758",
+    "first_name": "Tanya",
+    "last_name": "Isayan",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2795",
+    "first_name": "Yasmeen",
+    "last_name": "Jabbar",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2728",
+    "first_name": "Dah-Hoon",
+    "last_name": "Kang",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2717",
+    "first_name": "Sumanpreet",
+    "last_name": "Kaur",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2752",
+    "first_name": "Jiwoo",
+    "last_name": "Kim",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2733",
+    "first_name": "Kristopher",
+    "last_name": "Kuan",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2796",
+    "first_name": "Vinda",
+    "last_name": "Le",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2714",
+    "first_name": "Katelynn",
+    "last_name": "Lim",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2718",
+    "first_name": "Jay",
+    "last_name": "Luo",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2776",
+    "first_name": "Moe",
+    "last_name": "Maung",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2792",
+    "first_name": "Santiago",
+    "last_name": "Mendoza Miranda",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2756",
+    "first_name": "John",
+    "last_name": "Molinari",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2735",
+    "first_name": "An",
+    "last_name": "Nghiem",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2737",
+    "first_name": "Anson",
+    "last_name": "Nguyen",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2798",
+    "first_name": "Jazleigh",
+    "last_name": "Ortiz",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2734",
+    "first_name": "Mark",
+    "last_name": "Palmer",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2741",
+    "first_name": "Vinh",
+    "last_name": "Phan",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2732",
+    "first_name": "Maheen",
+    "last_name": "Qureshi",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2753",
+    "first_name": "Kayvon",
+    "last_name": "Sadeghi",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2715",
+    "first_name": "Anushka",
+    "last_name": "Shalia",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2711",
+    "first_name": "Aysha",
+    "last_name": "Shamim",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2738",
+    "first_name": "Ali",
+    "last_name": "Shams",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2731",
+    "first_name": "Mariah",
+    "last_name": "Sharp",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2777",
+    "first_name": "Tiffany",
+    "last_name": "Tong",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2771",
+    "first_name": "Bryan Andrew",
+    "last_name": "Torres",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2797",
+    "first_name": "Nikhita",
+    "last_name": "Vanama",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2778",
+    "first_name": "Madeline",
+    "last_name": "Yeager",
+    "grade_level": 3,
+    "externship_start_date": null,
+    "externship_end_date": null,
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2622",
+    "first_name": "Andrew",
+    "last_name": "Duong",
+    "grade_level": 4,
+    "externship_start_date": "2025-11-10",
+    "externship_end_date": "2026-01-08",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2623",
+    "first_name": "Brittney",
+    "last_name": "Duong",
+    "grade_level": 4,
+    "externship_start_date": "2025-11-10",
+    "externship_end_date": "2026-01-08",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S26X5",
+    "first_name": "Diane",
+    "last_name": "Chung",
+    "grade_level": 4,
+    "externship_start_date": "2025-11-10",
+    "externship_end_date": "2026-01-08",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2648",
+    "first_name": "Meena",
+    "last_name": "Sholji",
+    "grade_level": 4,
+    "externship_start_date": "2025-11-10",
+    "externship_end_date": "2026-01-08",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2663",
+    "first_name": "Amanda-Rae",
+    "last_name": "Williams",
+    "grade_level": 4,
+    "externship_start_date": "2025-11-10",
+    "externship_end_date": "2026-01-08",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  },
+  {
+    "student_id": "S2664",
+    "first_name": "Aban",
+    "last_name": "Yaqub",
+    "grade_level": 4,
+    "externship_start_date": "2025-11-10",
+    "externship_end_date": "2026-01-08",
+    "created_at": "2025-10-14T23:46:16",
+    "updated_at": "2025-10-14T23:46:27"
+  }
+]

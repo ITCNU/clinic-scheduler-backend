@@ -32,13 +32,12 @@ def main():
     if not run_command("python migrate.py", "Database migration"):
         print("⚠️  Database migration failed, but continuing...")
     
-    # Step 2: Run data migration (if LOCAL_DATABASE_URL is set)
-    local_db_url = os.getenv("LOCAL_DATABASE_URL")
-    if local_db_url:
-        if not run_command("python migrate_data.py", "Data migration"):
-            print("⚠️  Data migration failed, but continuing...")
+    # Step 2: Import data from JSON files (if they exist)
+    if os.path.exists("data/users.json"):
+        if not run_command("python import_data.py", "Data import from JSON files"):
+            print("⚠️  Data import failed, but continuing...")
     else:
-        print("ℹ️  No LOCAL_DATABASE_URL set, skipping data migration")
+        print("ℹ️  No data files found, skipping data import")
     
     # Step 3: Start the FastAPI application
     print("🌐 Starting FastAPI application...")
